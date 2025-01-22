@@ -58,8 +58,24 @@ public class MemorySpace {
 	 * @return the base address of the allocated block, or -1 if unable to allocate
 	 */
 	public int malloc(int length) {		
-		//// Replace the following statement with your code
-		return -1;
+		ListIterator li = freeList.iterator();
+		Boolean found = false;
+		while (li.hasNext() && !found) {
+			if(li.current.block.length >= length){
+				found = true;
+			}
+			else li.next();
+		}
+		if(!found) return -1;	//if can find enough free space returning -1
+		MemoryBlock currBlock = li.current.block;
+		MemoryBlock toAdd = new MemoryBlock(currBlock.baseAddress, length);
+		int index = freeList.indexOf(currBlock);
+		freeList.remove(currBlock);
+		if(currBlock.length > length){
+			freeList.add(index, new MemoryBlock(currBlock.baseAddress + length, currBlock.length - length));
+		}
+		allocatedList.addLast(toAdd);
+		return toAdd.baseAddress;
 	}
 
 	/**
@@ -71,7 +87,16 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		//// Write your code here
+		ListIterator li = allocatedList.iterator();
+		while(li.hasNext()){
+			if(li.current.block.baseAddress == address){
+				break;
+			}
+			li.next();
+		}
+		MemoryBlock toFree = new MemoryBlock(address, li.current.block.length);
+		allocatedList.remove(li.current);
+		freeList.addLast(toFree);
 	}
 	
 	/**
@@ -88,7 +113,43 @@ public class MemorySpace {
 	 * In this implementation Malloc does not call defrag.
 	 */
 	public void defrag() {
-		/// TODO: Implement defrag test
-		//// Write your code here
+		boolean worked = true;
+		while (worked) {
+			worked = defragOnce();
+		}
 	}
+
+
+
+	/**
+	 * A helper funtion for defrag().
+	 * The function goes over the free list and finds a pair of memory blocks to connect
+	 * and connects them.
+	 * @return true if it defragmented a pair of cells, or false if it did not find a pair to defrag.
+	 */
+	private boolean defragOnce() {
+		boolean found = false;
+		ListIterator iIter = freeList.iterator();
+		ListIterator jIter = null;
+		while (iIter.hasNext() && !found) {		//Finds a pair of blocks that we will need to join
+			jIter = freeList.iterator();
+			while (jIter.hasNext()) {
+				if(iIter.current.block.baseAddress + iIter.current.block.length == jIter.current.block.baseAddress){
+					found = true;
+					break;
+				}
+				jIter.next();
+			}
+			if(!found) iIter.next();
+		}
+		if(!found)	return false;
+		MemoryBlock base = iIter.current.block;	//The block we will add too
+		MemoryBlock join = jIter.current.block;	//The block that will be joined to the other one. 
+		MemoryBlock combined = new MemoryBlock(base.baseAddress, base.length + join.length);	//Creates the block that will be added. 
+		freeList.remove(base);
+		freeList.remove(join);
+		freeList.addLast(combined);
+		return true;
+	}
+
 }
