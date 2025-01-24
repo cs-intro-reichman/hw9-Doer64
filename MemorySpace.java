@@ -87,15 +87,19 @@ public class MemorySpace {
 	 *            the starting address of the block to freeList
 	 */
 	public void free(int address) {
-		ListIterator li = allocatedList.iterator();
-		while(li.hasNext()){
-			if(li.current.block.baseAddress == address){
-				break;
-			}
-			li.next();
+		if(allocatedList.getSize() == 0){
+			allocatedList.remove(-1);
+			return;
 		}
-		MemoryBlock toFree = new MemoryBlock(address, li.current.block.length);
-		allocatedList.remove(li.current);
+		int index = 0;
+		while (index < allocatedList.getSize() && allocatedList.getBlock(index).baseAddress != address) {
+			index++;
+		}
+		if(index == allocatedList.getSize()){
+			return;
+		}
+		MemoryBlock toFree = allocatedList.getBlock(index);
+		allocatedList.remove(index);
 		freeList.addLast(toFree);
 	}
 	

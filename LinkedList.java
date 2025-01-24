@@ -50,7 +50,7 @@ public class LinkedList {
 	 * @return the node at the given index
 	 */		
 	public Node getNode(int index) {
-		if (index < 0 || index > size) {
+		if (index < 0 || index >= size) {
 			throw new IllegalArgumentException(
 					"index must be between 0 and size");
 		}
@@ -140,9 +140,6 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public MemoryBlock getBlock(int index) {
-		if(index < 0 || index > size){
-			throw new IllegalArgumentException("Index must be non-negative and smaller then list's size");
-		}
 		Node curr = getNode(index);
 		return curr.block;
 	}	
@@ -172,8 +169,10 @@ public class LinkedList {
 	 *        the node that will be removed from this list
 	 */
 	public void remove(Node node) {
-		int index = indexOf(node.block);
-		if(index == -1) return;	//if the node is not found (or size is 0) return.
+		if (node == null){
+			throw new NullPointerException();
+		}
+		int index = indexOf(node.block);	//otherwise, get the index of the block in the node
 		if(index == 0){
 			first = first.next;
 			if(size == 1){
@@ -186,6 +185,7 @@ public class LinkedList {
 		Node prev = getNode(index-1);
 		prev.next = curr.next;
 		size--;
+		last = getNode(size-1);
 	}
 
 	/**
@@ -196,9 +196,7 @@ public class LinkedList {
 	 *         if index is negative or greater than or equal to size
 	 */
 	public void remove(int index) {
-		if(index < 0 || index >= size){
-			throw new IllegalArgumentException("Index has to be non-negative and smaller then list's size");
-		}
+		Node curr = getNode(index);	//tries to get curr first in case index is illegal
 		if(index == 0){
 			first = first.next;
 			if(size == 1){
@@ -207,10 +205,10 @@ public class LinkedList {
 			size--;
 			return;
 		}
-		Node curr = getNode(index);
 		Node prev = getNode(index-1);
 		prev.next = curr.next;
 		size--;
+		last = getNode(size-1);
 	}
 
 	/**
@@ -222,9 +220,6 @@ public class LinkedList {
 	 */
 	public void remove(MemoryBlock block) {
 		int index = indexOf(block);
-		if(index == -1){
-			throw new IllegalArgumentException("Block not found in list");
-		}
 		if(index == 0){
 			first = first.next;
 			if(size == 1){
@@ -237,6 +232,7 @@ public class LinkedList {
 		Node prev = getNode(index-1);
 		prev.next = curr.next;
 		size--;
+		last = getNode(size-1);
 	}	
 
 	/**
@@ -250,12 +246,11 @@ public class LinkedList {
 	 * A textual representation of this list, for debugging.
 	 */
 	public String toString() {
-		String output =  "List: {";	//gets the name of the list 
+		String output =  "";	//gets the name of the list 
 		ListIterator li = this.iterator();	//Creates a list iterator
 		while (li.hasNext()) {
-			output = output + li.next() + " -> ";
+			output = output + li.next() + " ";
 		}
-		output = output + li.current + "}";
 		return output;
 	}
 }
